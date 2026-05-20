@@ -3,9 +3,24 @@ import { createSlice } from "@reduxjs/toolkit";
 const usersSlice = createSlice({
     name: 'users',
     initialState: {
-        registeredUsers: []
+        registeredUsers: [],
+        currentUserEmail: null,
     },
     reducers:{
+        updateProfile: (state, action) => {
+            const {fullname, phone} = action.payload;
+            const user = state.registeredUsers.find(u => u.email === state.currentUserEmail)
+
+            if (user) {
+                user.fullname = fullname
+                user.phone = phone
+            }
+        },
+
+        setCurrentUserEmail: (state,action) => {
+            state.currentUserEmail = action.payload
+        },
+
         register: (state, action) => {
             state.registeredUsers.push({...action.payload,
                 balance: 0,
@@ -51,6 +66,22 @@ const usersSlice = createSlice({
 
         },  
 
+        updateProfilePicture:(state,action) => {
+            const {email,profileImage} = action.payload
+            const user = state.registeredUsers.find(u => u.email === email)
+            if (user) {
+                user.profileImage =profileImage
+            }
+        },
+
+        deleteProfilePicture: (state, action) => {
+            const {email} = action.payload
+            const user = state.registeredUsers.find(u => u.email === email)
+            if (user) {
+                user.profileImage = null;
+            }
+        },
+
         addPinToUser: (state, action) => {
             const{email, pin} = action.payload;
 
@@ -70,6 +101,6 @@ const usersSlice = createSlice({
     }
 });
 
-export const { register, addPinToUser, resetUserPassword, topUp, transferOut } = usersSlice.actions;
+export const { register, addPinToUser, resetUserPassword, topUp, transferOut,updateProfile,setCurrentUserEmail, updateProfilePicture, deleteProfilePicture } = usersSlice.actions;
 
 export default usersSlice.reducer;

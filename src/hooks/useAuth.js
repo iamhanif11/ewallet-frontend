@@ -1,6 +1,6 @@
 import { useSelector, useDispatch } from "react-redux";
 import {login, logout, updateSessionPin} from '../redux/slices/authSlice'
-import { addPinToUser, register as registerUser, resetUserPassword, topUp, transferOut } from "../redux/slices/usersSlice";
+import { addPinToUser, register as registerUser, resetUserPassword, setCurrentUserEmail, topUp, transferOut } from "../redux/slices/usersSlice";
 
 
 
@@ -12,12 +12,12 @@ export const useAuth = () => {
     const {isLoggedIn, currentUser} = useSelector((state) => state.auth)
 
 
-    const handleRegister = (email, password) => {
+    const handleRegister = (email, password, fullname) => {
         const isDuplicate = registeredUsers.find(u => u.email === email)
         if (isDuplicate) {
             throw new Error("Email sudah terdaftar")
         }
-        dispatch (registerUser({email, password}));
+        dispatch (registerUser({email, password, fullname}));
 
     };
 
@@ -33,6 +33,8 @@ export const useAuth = () => {
         }
 
         dispatch(login(foundUser))
+        dispatch(setCurrentUserEmail(email))
+        localStorage.setItem('currentUserEmail', email)
     }
 
     const handleTopUp = (amount) => {

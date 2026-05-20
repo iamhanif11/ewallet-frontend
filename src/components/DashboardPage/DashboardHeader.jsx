@@ -3,17 +3,23 @@ import Logo from "../atoms/Logo";
 import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 
 function DashboardHeader() {
+  const currentUserEmail = useSelector((state) => state.users.currentUserEmail)
+  const userFromStore = useSelector((state)=> state.users.registeredUsers.find((u)=> u.email === currentUserEmail))
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const navigate = useNavigate();
 
-  const{currentUser, handleLogout} = useAuth()
+  const{handleLogout} = useAuth()
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
+
+  const displayLabel = userFromStore?.fullname || currentUserEmail||userFromStore?.fullName
 
   const onLogout = () => {
     handleLogout()
@@ -21,6 +27,7 @@ function DashboardHeader() {
     navigate("/login", {replace: true})
   }
 
+  
   return (
     <header className="relative py-4 px-8 md:px-20 flex justify-between items-center border-b border-gray-200 shadow-sm">
       <Logo textColor="text-primary" />
@@ -29,8 +36,8 @@ function DashboardHeader() {
         className="profil flex gap-4 items-center cursor-pointer"
         onClick={toggleDropdown}
       >
-        <p className="font-montserrat hidden md:block">{currentUser?.email || "User"}</p>
-        <img src="/Ellipse 185.svg" className="w-10" alt="photo-profil" />
+        <p className="font-montserrat hidden md:block">{displayLabel}</p>
+        <img src={userFromStore?.profileImage || "/User edit.svg"} className="w-10" alt="photo-profil" />
         <img
           src="/down.svg"
           alt="dropdown"
@@ -40,7 +47,7 @@ function DashboardHeader() {
 
       {isDropdownOpen && (
         <div className="absolute right-8 top-full mt-2 w-55 bg-white border border-gray-100 shadow-xl rounded-md p-2 z-50 ">
-          <p className="font-semibold mt-4 md:hidden">Hello, {currentUser?.email}</p>
+          <p className="font-semibold mt-4 md:hidden">Hello, {displayLabel}</p>
           <div className="md:hidden flex flex-col gap-1 border-b border-gray-200 pb-2 mb-2">
             <NavLink
               to="/dashboard"
