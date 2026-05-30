@@ -15,7 +15,7 @@ const forgotSchema = Joi.object({
 
 function ForgotPassword() {
   const navigate = useNavigate()
-  const {handleCheckEmailForgot} = useAuth()
+  const {handleCheckEmailForgot, isLoading} = useAuth()
 
   const{
     register,
@@ -26,16 +26,17 @@ function ForgotPassword() {
     resolver: joiResolver(forgotSchema),
   })
 
-  const onSubmit = (data) => {
+  const onSubmit = async(data) => {
     try {
-      handleCheckEmailForgot(data.email)
+      await handleCheckEmailForgot(data.email)
 
       toast.success("Silahkan buat password baru")
 
       navigate("/new-password", {state: {email: data.email}})
     } catch (error) {
-      setError("email", {message: error.message})
-      toast.error(error.message)
+      const errorMessage = typeof error === 'string' ? error :(error.message)
+      setError("email", {message: errorMessage})
+      toast.error(errorMessage)
     }
   }
   
@@ -70,8 +71,9 @@ function ForgotPassword() {
 
             <button 
             type="submit"
+            disabled={isLoading}
             className="block w-full border border-blue-600 p-2 rounded-md bg-blue-600 hover:bg-blue-700 cursor-pointer text-center text-white font-montserrat">
-              Verify Email
+              {isLoading ? "Loading..." : "Verifikasi Email"}
             </button>
           </div>
         </form>

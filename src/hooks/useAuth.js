@@ -1,5 +1,6 @@
 import { useSelector, useDispatch } from "react-redux";
 import {loginUser,registerUser, logoutUser, createPin, verifyEmail, resetPassword} from '../redux/slices/authSlice'
+import NewPassword from "../pages/NewPassword";
 
 export const useAuth = () => {
     const dispatch = useDispatch();
@@ -19,12 +20,16 @@ export const useAuth = () => {
         return await dispatch(logoutUser()).unwrap();
     }
 
-    const handleCheckEmail = async(email) => {
+    const handleCheckEmailForgot = async(email) => {
         return await dispatch(verifyEmail({email})).unwrap();
     }
 
-    const handleNewPassword = async(email, newPassword) => {
-        return await dispatch(resetPassword({ email, newPassword })).unwrap();
+    const handleNewPassword = async(email, newPassword, confirmPassword) => {
+        return await dispatch(resetPassword({ 
+            email: email, 
+            new_password: newPassword,
+            confirm_password: confirmPassword
+        })).unwrap();
     }
 
     const handleCreatePin = async(pin) => {
@@ -39,7 +44,7 @@ export const useAuth = () => {
         handleRegister,
         handleLogin,
         handleLogout,
-        handleCheckEmail,
+        handleCheckEmailForgot,
         handleNewPassword,
         handleCreatePin
     }

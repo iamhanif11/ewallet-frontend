@@ -21,7 +21,7 @@ const resetSchema = Joi.object({
 function NewPassword() {
     const navigate = useNavigate()
     const location = useLocation()
-    const { handleNewPassword } = useAuth()
+    const { handleNewPassword, isLoading } = useAuth()
 
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword]= useState(false)
@@ -43,14 +43,15 @@ function NewPassword() {
         resolver: joiResolver(resetSchema),
     });
 
-    const onSubmit = (data) => {
+    const onSubmit = async (data) => {
         try{
-            handleNewPassword(email, data.password)
+            await handleNewPassword(email, data.password, data.confirmPassword);
 
             toast.success("Password berhasil diubah!")
             navigate("/login")
-        } catch {
-            toast.error("Gagal!")
+        } catch (error){
+            const errorMessage = typeof error === 'string' ? error : (error.message)
+            toast.error(errorMessage)
         }
     }
   return (
@@ -125,9 +126,10 @@ function NewPassword() {
 
           <button 
             type="submit"
+            disabled={isLoading}
             className="block w-full border border-blue-600 p-3 mt-4 rounded-md bg-blue-600 hover:bg-blue-700 cursor-pointer text-center text-white font-montserrat transition-colors"
           >
-            Reset Password
+            {isLoading ? "Loading..." : "Reset Password"}
           </button>
         </form>
 

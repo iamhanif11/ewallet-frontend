@@ -167,6 +167,29 @@ const authSlice = createSlice({
             state.error = action.payload;
         })
 
+        .addCase(verifyEmail.pending, (state) => {
+            state.status = "loading"
+            state.error = null;
+        })
+        .addCase(verifyEmail.fulfilled, (state) => {
+            state.status = "completed";
+        })
+        .addCase(verifyEmail.rejected, (state, action) => {
+            state.status = "failed";
+            state.error = action.payload;
+        })
+
+        .addCase(resetPassword.pending, (state) => {
+            state.status = "loading"
+            state.error = null
+        })
+        .addCase(resetPassword.fulfilled, (state) => {
+            state.status = "completed"
+        })
+        .addCase(resetPassword.rejected, (state, action) => {
+            state.status = "failed";
+            state.error = action.payload
+        })
     }
 });
 
