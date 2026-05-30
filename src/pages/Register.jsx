@@ -28,7 +28,7 @@ const registerSchema = Joi.object({
 function Register() {
   const navigate = useNavigate();
 
-  const { handleRegister } = useAuth()
+  const { handleRegister, isLoading } = useAuth()
 
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -42,32 +42,18 @@ function Register() {
     resolver: joiResolver(registerSchema),
   });
 
-  const onSubmit = (data) => {
-    // const existUser = JSON.parse(localStorage.getItem("users") || "[]");
-
-    // const isDuplicate = (registeredUsers || []).find(u => u.email === data.email);
-    // if (isDuplicate) {
-    //   setError("email", { message: "Email sudah terdaftar" });
-    //   toast.error("Registrasi Gagal: Email sudah digunakan")
-    //   return;
-    
+  const onSubmit = async(data) => {
     try {
-      handleRegister(data.email, data.password)
+      // handleRegister(data.email, data.password)
+      await handleRegister(data.email, data.password);
 
-      toast.success("Registrasi Berhasil! Silahkan login.")
+      toast.success("Registrasi Berhasil! Silahkan Login.")
       navigate("/login")
     } catch (error){
-      setError("email", {message: error.message})
-      toast.error(error.message)
+      const errorMessage = typeof error === 'string'? error :(error.message || "Register Gagal");
+      setError("email", {message: errorMessage})
+      toast.error(errorMessage)
     }
-
-    // const { _confirmPassword, ...newUser } = data;
-    // const updatedUsers = [...existUser, newUser];
-
-    // localStorage.setItem("users", JSON.stringify(updatedUsers));
-
-    // handleRegister(data.email, data.password)
-    // navigate("/login");
   };
   return (
     <main className=" w-full min-h-screen bg-blue-600 flex font-montserrat">
@@ -194,8 +180,15 @@ function Register() {
             )}
           </div>
 
-          <button className="btn-submit border w-full border-blue-600 p-2 rounded-md bg-blue-600 text-white font-montserrat">
-            Register
+          <button 
+          type="submit"
+          disabled={isLoading}
+          className={`btn-submit border w-full p-2 rounded-md font-montserrat mt-4 ${
+            isLoading
+              ? "bg-blue-400 border-blue-400 text-gray-200 cursor-not-allowed"
+              : "border-blue-600 bg-blue-600 text-white"
+          }`}>
+            {isLoading ? "Loading..." : "Register"}
           </button>
         </form>
 

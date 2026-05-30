@@ -12,7 +12,8 @@ dist
 dist-ssr
 *.local
 .env
-
+src/redux/slices/p.js
+src/hooks/dupe.js
 
 # Editor directories and files
 .vscode/*

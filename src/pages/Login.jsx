@@ -24,7 +24,7 @@ const loginSchema = Joi.object({
 
 function Login() {
   const navigate = useNavigate();
-  const { handleLogin, currentUser} = useAuth();
+  const { handleLogin, currentUser, isLoading} = useAuth();
   const [showPassword, setShowPassword] = useState(false)
 
   const {
@@ -37,42 +37,32 @@ function Login() {
   });
 
   useEffect(() => {
+    console.log("?", currentUser)
     if (currentUser) {
-      if(!currentUser.pin){
+      if(!currentUser.has_pin){
         navigate("/create-pin")
       } else {
         navigate("/dashboard")
       }
-  
     }
-  }, [currentUser])
-  const onSubmit = (data) => {
-    // const users = JSON.parse(localStorage.getItem("users") || "[] ");
-    // const foundUser = (registeredUsers || []).find((u) => u.email === data.email);
-
-    // if (!foundUser) {
-    //   setError("email", { message: "Email belum terdaftar" });
-    //   toast.error("Login gagal: Email belum terdaftar")
-    //   return;
-    // }
-
-    // if (foundUser.password !== data.password) {
-    //   setError("password", { message: "Password salah" });
-    //   return;
-    // }
+  }, [currentUser, navigate])
+  const onSubmit = async (data) => {
     try{
-      handleLogin(data.email, data.password);
+     await handleLogin(data.email, data.password);
       
       toast.success("Login Berhasil")
       // navigate("/dashboard");
 
     }catch (error){
-      if(error.message === "Email belum terdaftar"){
-        setError("email", {message: error.message})
-      } else if (error.message === "Password Salah"){
-        setError("password", {message:error.message})
-      }
-      toast.error(`Login Gagal: ${error.message}`)
+      const errorMessage = typeof error === 'string' ? error : (error.message || "Login Gagal")
+
+      setError("email", { message: errorMessage})
+      // if(error.message === "Email belum terdaftar"){
+      //   setError("email", {message: error.message})
+      // } else if (error.message === "Password Salah"){
+      //   setError("password", {message:error.message})
+      // }
+      toast.error(`Login Gagal: ${errorMessage}`)
     }
 
     // sessionStorage.setItem("isLoggedIn", "true");
@@ -180,8 +170,15 @@ function Login() {
             Forgot Password?
             </Link>
           </div>
-          <button className="btn-submit w-full border border-blue-600 p-2 rounded-md bg-blue-600 hover:bg-blue-700 cursor-pointer text-white font-montserrat mt-4">
-            Login
+          <button 
+            type="submit"
+            disabled={isLoading}
+            className={`btn-submit w-full border p-2 rounded-md font-montserrat mt-4 ${
+              isLoading
+                ? "bg-blue-400 border-blue-400 text-gray-200 cursor-not-allowed"
+                : "border-blue-600 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+            }`}>
+            {isLoading ? "Loading..." : "Login"}    
           </button>
         </form>
 

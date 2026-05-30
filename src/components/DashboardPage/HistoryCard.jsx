@@ -12,11 +12,14 @@ import { useAuth } from "../../hooks/useAuth";
 
 
 function HistoryCard(){
-  const { currentUser, registeredUsers } = useAuth()
+  const { currentUser } = useAuth()
 
-  const activeUser = registeredUsers.find((u) => u.email === currentUser?.email)
-  const historyList = activeUser?.history ? [...activeUser.history].reverse() : []
-
+  // const activeUser = registeredUsers.find((u) => u.email === currentUser?.email)
+  // const currentUser = activeUser?.history ? [...activeUser.history].reverse() : []
+  // const transactions = currentUser?.history || []
+  if (!currentUser) {
+    return <div>Memuat riwayat...</div>;
+  }
 
     return(
         <div className="bg-white p-6 border flex flex-col border-gray-200 rounded-xs font-montserrat w-full h-full">
@@ -28,8 +31,8 @@ function HistoryCard(){
       </div>
 
       <div className="flex flex-col gap-5 flex-1">
-       {historyList.length > 0 ? (
-         historyList.slice(0, 10).map((item) => (
+       {currentUser.length > 0 ? (
+         currentUser.slice(0, 10).map((item) => (
            <div key={item.id} className="history flex items-center justify-between">
              
              <div className="flex items-center gap-4">

@@ -10,10 +10,10 @@ import toast from "react-hot-toast";
 function CreatePin() {
   const navigate = useNavigate();
 
-  const {handleCreatePin} = useAuth();
+  const {handleCreatePin, isLoading} = useAuth();
   const[pin, setPin] = useState(new Array(6).fill(""))
 
-  const onSubmit = () => {
+  const onSubmit = async() => {
     const finalPin = pin.join("");
 
     if (finalPin.length < 6){
@@ -22,11 +22,12 @@ function CreatePin() {
     }
 
     try{
-      handleCreatePin(finalPin)
+      await handleCreatePin(finalPin)
       toast.success("PIN Berhasil Dibuat")
       navigate("/dashboard")
     }catch (error) {
-      toast.error(error)
+      const errorMessage = typeof error === 'string' ? error : (error.message || "Gagal membuat PIN")
+      toast.error(errorMessage)
     }
 
   }
@@ -56,8 +57,13 @@ function CreatePin() {
 
           <button
           onClick={onSubmit}
-          className="bg-primary w-full py-3 md:py-4 rounded-xl text-white   hover:bg-blue-700 ">
-            Submit
+          disabled={isLoading}
+          className={`w-full py-3 md:py-4 rounded-xl text-white ${
+            isLoading
+              ? "bg-blue-400 cursor-not-allowed"
+              : "bg-primary hover:bg-blue-700"
+          }`}>
+            {isLoading ? "Loading..." : "Submit"}
           </button>
 
           {/* <div className="reset text-center text-sm">

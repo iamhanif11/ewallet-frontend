@@ -2,9 +2,9 @@ import { useAuth } from "../../hooks/useAuth";
 
 
 function BalanceCard() {
-  const {currentUser, registeredUsers} = useAuth()
+  const {currentUser} = useAuth()
 
-  const userData = registeredUsers.find((u) => u.email === currentUser?.email)
+  
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("id-ID", {
@@ -13,6 +13,7 @@ function BalanceCard() {
       minimumFractionDigits: 0,
     }).format(amount || 0);
   };
+  if(!currentUser)
   return (
     <div className="information bg-white p-6  border border-gray-200 rounded-xs w-full font-montserrat ">
       
@@ -25,7 +26,7 @@ function BalanceCard() {
           <p className="text-gray-500 font-montserrat font-medium">Balance</p>
         </div>
         
-        <h3 className="text-2xl font-montserrat font-medium">{formatCurrency(userData?.balance)}</h3>
+        <h3 className="text-2xl font-montserrat font-medium">{formatCurrency(currentUser?.balance)}</h3>
         
         <div className="tail flex items-center gap-8 mt-2">
           
@@ -33,7 +34,7 @@ function BalanceCard() {
           <div className="add flex flex-col gap-1">
             <h4 className="text-gray-400 text-xs font-montserrat">Income</h4>
             <div className="more flex items-center gap-2">
-              <p className="in font-montserrat text-green-500 text-sm">{formatCurrency(userData?.income)}</p>
+              <p className="in font-montserrat text-green-500 text-sm">{formatCurrency(currentUser?.income)}</p>
               <img src="/ArrowRise-s.png" alt="arrow up" className="w-3 h-3 object-contain" />
             </div>
           </div>
@@ -42,7 +43,7 @@ function BalanceCard() {
           <div className="add flex flex-col gap-1">
             <h4 className="text-gray-400 text-xs ">Expense</h4>
             <div className="more flex items-center gap-2">
-              <p className="out-1 text-red-500  text-sm">{formatCurrency(userData?.expense)}</p>
+              <p className="out-1 text-red-500  text-sm">{formatCurrency(currentUser?.expense)}</p>
               <img src="/ArrowRise-red.svg" alt="arrow down" className="w-3 h-3 object-contain" />
             </div>
           </div>
