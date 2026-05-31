@@ -19,12 +19,30 @@ export const fetchWalletData = createAsyncThunk(
     }
 );
 
+export const fetchTransactionReport = createAsyncThunk(
+    "wallet/fetchReport",
+    async(_, { rejectWithValue }) => {
+        try{
+            const token = localStorage.getItem("token")
+            const response = await api.get("/user/reports", {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            return response.data.data;
+        }catch (error) {
+            return rejectWithValue(error.response?.data)
+        }
+    }
+);
+
 const walletSlice = createSlice({
     name: "wallet", 
     initialState: {
         balance: 0,
         income: 0,
         expense: 0,
+        reportData: [],
         status: "none",
         error: null,
     },
@@ -44,6 +62,18 @@ const walletSlice = createSlice({
             .addCase(fetchWalletData.rejected, (state, action) =>{
                 state.status = "failed"
                 state.error = action.payload;
+            })
+
+            .addCase(fetchTransactionReport.pending, (state) => {
+                state.status = "loading";
+            })
+            .addCase(fetchTransactionReport.fulfilled, (state, action) => {
+                state.status = "completed"
+                state.reportData = action.payload;
+            })
+            .addCase(fetchTransactionReport.rejected, (state, action) => {
+                state.status = "failed"
+                state.error = action.payload
             })
     }
 })

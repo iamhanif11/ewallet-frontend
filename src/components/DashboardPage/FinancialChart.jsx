@@ -6,8 +6,11 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-
 import { Bar } from "react-chartjs-2";
+import { useDispatch, useSelector } from "react-redux";
+import { useAuth } from "../../hooks/useAuth";
+import { useEffect } from "react";
+import { fetchTransactionReport } from "../../redux/slices/walletSlice";
 
 ChartJS.register(
   CategoryScale,
@@ -18,18 +21,33 @@ ChartJS.register(
 );
 
 function FinancialChart() {
+  const dispatch = useDispatch();
+  const { currentUser } = useAuth()
+  
+  const { reportData, status} = useSelector((state) => state.wallet);
+
+  useEffect(() => {
+    if (currentUser) {
+      dispatch(fetchTransactionReport());
+    }
+  }, [currentUser, dispatch]);
+
+  const chartLabel = reportData?.map((item) => item.day) || [];
+  const expenseData = reportData?.map((item) => item.expense) || [];
+  const incomeData = reportData?.map((item) => item) || [];
+  
   const data = {
-    labels: ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+    labels: chartLabel,
     datasets: [
       {
         label: "Expense",
-        data: [20000, 55000, 65000, 35000, 5000, 60000, 50000],
+        data: expenseData,
         backgroundColor: "Red",
         borderRadius: 4,
       },
       {
         label: "Income",
-        data: [80000, 80000, 85000, 30000, 22000, 70000, 5000],
+        data: incomeData,
         backgroundColor: "Blue",
         borderRadius: 4
       },
@@ -52,11 +70,7 @@ function FinancialChart() {
     },
     scales: {
       y: {
-        max: 100000,
         beginAtZero: true,
-        ticks: {
-          stepSize: 25000,
-        },
       },
     },
   };
@@ -78,7 +92,13 @@ function FinancialChart() {
       </div>
 
       <div className="relative w-full h-64 md:h-80">
-        <Bar data={data} options={options} />
+        {status === "loading" ? (
+          <div className="w-full h-full flex items-center justify-center bg-gray-50 animate-pulse rounded-md">
+            <p className="text-gray-400">Loading...</p>
+          </div>
+        ) : (
+          <Bar data={data} options={options} />
+        )}
       </div>
     </div>
   );
