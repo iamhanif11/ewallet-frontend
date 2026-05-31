@@ -16,7 +16,7 @@ function DashboardHeader() {
     setIsDropdownOpen(!isDropdownOpen);
   };
   
-  const displayLabel = currentUser?.fullname || currentUser?.Email|| "User"
+  const displayLabel = currentUser?.fullname || currentUser?.email|| "User"
   // const currentUserEmail = useSelector((state) => state.users.currentUserEmail)
   // const userFromStore = useSelector((state)=> state.users.registeredUsers.find((u)=> u.email === currentUserEmail))
 
