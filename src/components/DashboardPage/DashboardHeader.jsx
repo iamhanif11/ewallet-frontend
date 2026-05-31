@@ -3,6 +3,7 @@ import Logo from "../atoms/Logo";
 import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 // import { useSelector } from "react-redux";
 
 
@@ -12,13 +13,34 @@ function DashboardHeader() {
   const [isModalOpen, setIsModelOpen] = useState(false)
   const{currentUser, handleLogout} = useAuth()
   
+  const {profileData} = useSelector((state) => state.users)
+
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
   
-  const displayLabel = currentUser?.fullname || currentUser?.email|| "User"
-  // const currentUserEmail = useSelector((state) => state.users.currentUserEmail)
-  // const userFromStore = useSelector((state)=> state.users.registeredUsers.find((u)=> u.email === currentUserEmail))
+  const displayLabel = profileData?.fullname || currentUser?.fullname ||profileData.email || currentUser?.email|| "User"
+
+  const getImageURL = (imagePath) => {
+    if (!imagePath) return "/User edit.svg"
+
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://"))
+      return imagePath
+  
+
+  const BACKEND_URL = "http://localhost:8080"
+
+  const cleanPath = imagePath.startsWith("/") ? imagePath.slice(1) : imagePath;
+
+  if (cleanPath.startsWith("img/profile")) {
+    return `${BACKEND_URL}/${cleanPath}`;
+  } else {
+    return `${BACKEND_URL}/img/profile/${cleanPath}`
+  }
+};
+
+  const rawPicture = profileData?.picture || currentUser?.picture;
+  const displayPicture = getImageURL(rawPicture)
 
   const onLogout = async () => {
     try{
@@ -47,7 +69,7 @@ function DashboardHeader() {
         onClick={toggleDropdown}
       >
         <p className="font-montserrat hidden md:block">{displayLabel}</p>
-        <img src={currentUser?.picture || "/User edit.svg"} className="w-10" alt="photo-profil" />
+        <img src={displayPicture} className="w-10" alt="photo-profil" />
         <img
           src="/down.svg"
           alt="dropdown"

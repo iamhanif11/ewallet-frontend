@@ -3,33 +3,49 @@ import ButtonDownload from "../components/atoms/ButtonDownload";
 import DashboardHeader from "../components/DashboardPage/DashboardHeader";
 import Menu from "../components/DashboardPage/Menu";
 import { useDispatch, useSelector } from "react-redux";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  deleteProfilePicture,
-  updateProfile,
-  updateProfilePicture,
+  fetchUserProfile,
+  updateUserProfile,
 } from "../redux/slices/usersSlice";
 import toast from "react-hot-toast";
 
 function EditProfile() {
   const dispatch = useDispatch();
-  const currentUserEmail = useSelector((state) => state.users.currentUserEmail);
-  const user = useSelector((state) =>
-    state.users.registeredUsers.find((u) => u.email === currentUserEmail),
-  );
 
+  const { profileData, updateStatus } = useSelector((state) => state.users);
   const [formData, setFormData] = useState({
-    fullname: user?.fullname || "",
-    phone: user?.phone || "",
+    fullname: "",
+    phone: "",
   });
 
-  const [profileImage, setProfileImage] = useState(user?.profileImage || null);
-  const fileInputRef = useRef(null);
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [previewImage, setPreviewImage] = useState(null)
 
+  const fileInputRef = useRef(null);
+  const isFormInitialized =useRef(false)
+
+  useEffect(() => {
+    dispatch(fetchUserProfile())
+  }, [dispatch]);
+
+  useEffect(() => {
+    if(profileData && !isFormInitialized.current) {
+      setFormData({
+        fullname: profileData.fullname || "",
+        phone: profileData.phone || "",
+      });
+      setPreviewImage(profileData.picture || null) 
+
+      isFormInitialized.current =true;
+    }
+  }, [profileData])
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+  
   const handleChangeProfileClick = () => {
     fileInputRef.current?.click();
   };
@@ -43,57 +59,47 @@ function EditProfile() {
       return;
     }
     
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        if (file.imgSize < 1024 *1024) {
-          toast.error("foto maksimal 1mb");
-          return;
-        }
-        const base64 = event.target.result;
-        setProfileImage(base64);
-
-        dispatch(
-          updateProfilePicture({
-            email: currentUserEmail,
-            profileImage: base64,
-          }),
-        );
-
-        toast.success("Foto berhasil diubah");
-      };
-      img.onerror = () => {
-        toast.error("gagal memuat gambar");
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
+    if (file.size > 1024 *1024) {
+      toast.error("Foto Maksimal 1MB");
+      return;
+    }
+   
+    setSelectedFile(file);
+    setPreviewImage(URL.createObjectURL(file));
   };
-
+  
   const handleDeleteProfile = () => {
-    setProfileImage(null);
-    dispatch(deleteProfilePicture({ email: currentUserEmail }));
-    toast.success("foto profil dihapus");
+    setSelectedFile(null);
+    setPreviewImage(null);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+    toast.success("Foto dihapus!")
   };
-
-  const handleSubmit = (e) => {
+  
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    dispatch(
-      updateProfile({
-        fullname: formData.fullname,
-        phone: formData.phone,
-      }),
-    );
+    const dataToSend = new FormData();
+    dataToSend.append("fullname", formData.fullname)
+    dataToSend.append("phone", formData.phone)
 
-    toast.success("Profil berhasil diperbaharui");
+    if (selectedFile) {
+      dataToSend.append("picture", selectedFile)
+    }
 
+    try{
+      await dispatch(updateUserProfile(dataToSend)).unwrap();
+      toast.success("Profil Berhasi Diperbarui!");
+    } catch (error) {
+      const errorMesssage = typeof error === 'string' ? error : (error)
+      toast.error(errorMesssage)
+    }
   };
+
+
+
   return (
     <>
       <div className="min-h-screen bg-white">
@@ -115,7 +121,7 @@ function EditProfile() {
                   <h3 className="text-gray-700 font-bold">Profile Picture</h3>
                   <div className="flex items-center gap-6">
                     <img
-                      src={profileImage || "/User edit.svg"}
+                      src={previewImage || "/User edit.svg"}
                       alt="photo-profile"
                       className="w-24 h-24 bg-gray-50 border border-gray-200 rounded-xl object-cover p-2"
                     />
@@ -207,6 +213,7 @@ function EditProfile() {
                       />
                       <input
                         type="email"
+                        value={profileData?.email || ""}
                         placeholder="Enter Your Email"
                         disabled={true}
                         className="cursor-not-allowed w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-300"
@@ -243,9 +250,14 @@ function EditProfile() {
 
                 <button
                   type="submit"
-                  className="w-full py-4 bg-primary text-white rounded-md text-lg hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all  mt-6"
+                  disabled={updateStatus === "loading"}
+                  className={`w-full py-4 rounded-md text-lg shadow-lg transition-all mt-6 ${
+                    updateStatus === "loading"
+                      ? "bg-blue-400 text-gray-100 cursor-not-allowed"
+                      : "bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
+                  } `}
                 >
-                  Submit
+                  {updateStatus === "loading" ? "saving..." : "Submit"}
                 </button>
               </form>
             </div>

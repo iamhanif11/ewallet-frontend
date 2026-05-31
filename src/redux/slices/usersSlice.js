@@ -1,106 +1,89 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import api from "../../services/api";
+
+export const fetchUserProfile = createAsyncThunk(
+    "users/fetchProfile",
+    async(_, { rejectWithValue }) => {
+        try{
+            const token = localStorage.getItem("token")
+
+            const response = await api.get("/user/profile", {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            return response.data.data
+        } catch (error) {
+            return rejectWithValue(error.response?.data);
+        }
+    }
+);
+
+export const updateUserProfile = createAsyncThunk(
+    "users/updateProfile",
+    async (profileData, { rejectWithValue }) => {
+        try{
+            const token = localStorage.getItem("token");
+
+            const response = await api.patch("/user/profile", profileData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "multipart/form-data"
+                }
+            });
+            return response.data.data
+        } catch (error){
+            return rejectWithValue(error.response?.data)
+        }
+    }
+);
 
 const usersSlice = createSlice({
     name: 'users',
     initialState: {
-        registeredUsers: [],
-        currentUserEmail: null,
+        profileData: null,
+        status: "none",
+        updateStatus: "none",
+        error: null,
     },
-    reducers:{
-        updateProfile: (state, action) => {
-            const {fullname, phone} = action.payload;
-            const user = state.registeredUsers.find(u => u.email === state.currentUserEmail)
+    reducers: {
+        clearUserError: (state) => {
+            state.error = null;
+            state.updateStatus = "none"
+        }
+    },
+    extraReducers: (builder) => {
+        builder
 
-            if (user) {
-                user.fullname = fullname
-                user.phone = phone
-            }
-        },
+        .addCase(fetchUserProfile.pending, (state) => {
+            state.status = "loading"
+            state.error = null;
+        })
+        .addCase(fetchUserProfile.fulfilled, (state, action) => {
+            state.status = "completed";
+            state.profileData = action.payload;
+        })
+        .addCase(fetchUserProfile.rejected, (state, action) => {
+            state.status = "failed"
+            state.error = action.payload;
+        })
 
-        setCurrentUserEmail: (state,action) => {
-            state.currentUserEmail = action.payload
-        },
-
-        register: (state, action) => {
-            state.registeredUsers.push({...action.payload,
-                balance: 0,
-                income: 0,
-                expense: 0,
-                history: []
-            })
-        },
-
-        topUp: (state, action) => {
-            const {email, amount} = action.payload
-            const user = state.registeredUsers.find(u => u.email === email)
-
-            if (user) {
-                const value = Number(amount)
-                user.balance += value
-                user.income = (user.income || 0) + value
-
-            }
-        },
-
-        transferOut: (state, action) => {
-            const {email, amount, recipientName, recipientImage} = action.payload;
-            const user = state.registeredUsers.find(u => u.email === email)
-            const value = Number(amount)
-
-            if (user && user.balance >= value){
-                user.balance -= value
-                user.expense = (user.expense || 0) + value
-
-                if(!user.history) user.history = [];
-
-                user.history.unshift({
-                    id: Date.now(), 
-                    name: recipientName,
-                    type: "Send",
-                    amount: `Rp.${value.toLocaleString('id-ID')}`,
-                    isIncome: false,
-                    image: recipientImage,
-                    date: new Date().toISOString()
-                })
-            }
-
-        },  
-
-        updateProfilePicture:(state,action) => {
-            const {email,profileImage} = action.payload
-            const user = state.registeredUsers.find(u => u.email === email)
-            if (user) {
-                user.profileImage =profileImage
-            }
-        },
-
-        deleteProfilePicture: (state, action) => {
-            const {email} = action.payload
-            const user = state.registeredUsers.find(u => u.email === email)
-            if (user) {
-                user.profileImage = null;
-            }
-        },
-
-        addPinToUser: (state, action) => {
-            const{email, pin} = action.payload;
-
-            const user = state.registeredUsers.find(u => u.email === email)
-            if (user) {
-                user.pin = pin
-            }
-        },
-
-        resetUserPassword: (state, action) => {
-            const{email, newPassword} = action.payload
-            const user = state.registeredUsers.find(u => u.email === email)
-            if(user){
-                user.password = newPassword
-            }
-        },
+        .addCase(updateUserProfile.pending, (state) =>{
+            state.updateStatus = "loading"
+            state.error = null;
+        })
+        .addCase(updateUserProfile.fulfilled, (state, action) => {
+            state.updateStatus = "completed"
+            state.profileData = action.payload
+        })
+        .addCase(updateUserProfile.rejected, (state, action) => {
+            state.updateStatus = "failed"
+            state.error = action.payload
+        });
     }
 });
 
-export const { register, addPinToUser, resetUserPassword, topUp, transferOut,updateProfile,setCurrentUserEmail, updateProfilePicture, deleteProfilePicture } = usersSlice.actions;
-
+export const { clearUserError } = usersSlice.actions;
 export default usersSlice.reducer;
+
+
