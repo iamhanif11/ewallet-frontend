@@ -1,21 +1,30 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
-import { useAuth } from "../../hooks/useAuth";
+// import { useAuth } from "../../hooks/useAuth";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchTransactionHistory } from "../../redux/slices/transactionSlice";
 
 
 function FindHistory() {
-  const { currentUser, registeredUsers } = useAuth()
+  const dispatch = useDispatch();
+  // const { currentUser, registeredUsers } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const activeUser = registeredUsers.find((u) => u.email === currentUser?.email)
-  const historyTrx = activeUser?.history || []
+  const {histories: rawHistories, historyStatus} = useSelector((state) => state.transaction);
+  const histories = rawHistories || []
+  const isLoading = historyStatus === "loading"
 
-  const queryFromUrl = searchParams.get("q") || "";
-  // const pageFromUrl = parseInt(searchParams.get("page")) || 1
+  const queryFromUrl = searchParams.get("search") || "";
   const [inputValue, setInputValue] = useState(queryFromUrl);
 
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
+
+  // const activeUser = registeredUsers.find((u) => u.email === currentUser?.email)
+  // const historyTrx = activeUser?.history || []
+
+  // const pageFromUrl = parseInt(searchParams.get("page")) || 1
+
  
   const handleInputChange = (e) => {
     setInputValue(e.target.value)
@@ -26,7 +35,7 @@ function FindHistory() {
     const timeoutId = setTimeout(() => {
       
       if (inputValue) {
-        setSearchParams({q: inputValue});
+        setSearchParams({search: inputValue});
       } else {
         setSearchParams({});
       }
@@ -35,24 +44,44 @@ function FindHistory() {
     return () => clearTimeout(timeoutId);
   }, [inputValue, setSearchParams]);
 
-  const filteredHistory = historyTrx.filter(
-    (item) =>
-      item.name.toLowerCase().includes(inputValue.toLocaleLowerCase()) ||
-      item.type.toLowerCase().includes(inputValue.toLocaleLowerCase())
-  )
+  useEffect(() => {
+    dispatch(
+      fetchTransactionHistory({
+        search: queryFromUrl,
+        page: currentPage,
+        limit: itemsPerPage,
+      })
+    )
+  }, [dispatch, queryFromUrl, currentPage, itemsPerPage])
 
-  const totalItems = filteredHistory.length
-  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1
+  // const totalItems = histories.length > 0 ? histories.length * (currentPage + (histories.length === itemsPerPage ? 1 : 0)) : 0;
 
-  const startIndex = (currentPage -1) * itemsPerPage;
-  const paginatedPeople = [...filteredHistory]
-  .reverse()
-  .slice(startIndex, startIndex + itemsPerPage)
+  const pageNumbers = [currentPage];
 
-  const pageNumbers = Array.from({ length: totalPages }, (_,i) => i + 1)
-
+  const isHasMorePage = histories.length === itemsPerPage
   const handlePrev = () => setCurrentPage((prev) => Math.max(prev -1, 1))
-  const handleNext = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+  const handleNext = () => {
+    if (isHasMorePage) setCurrentPage((prev) => prev +1)
+  }
+
+  const formatRupiah = (angka) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(angka);
+  };
+  
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return "/User edit.svg";
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
+    const BACKEND_URL = "http://localhost:8080";
+    const cleanPath = imagePath.startsWith("/") ? imagePath.slice(1) : imagePath;
+    return cleanPath.startsWith("img/profile")
+      ? `${BACKEND_URL}/${cleanPath}`
+      : `${BACKEND_URL}/img/profile/${cleanPath}`;
+  };
+
   return (
     <section className="bg-white rounded-md p-6 shadow-sm border border-gray-100">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -61,7 +90,7 @@ function FindHistory() {
           <p className="text-sm text-gray-500 mt-1">
             {/* {filteredPeople.length} Result Found For{" "}
             {queryFromUrl || "Everyone"}{" "} */}
-            {totalItems} Result Found For {queryFromUrl || "Everyone"}
+            Result Found For {queryFromUrl || "All Transaction"}
           </p>
         </div>
 
@@ -85,17 +114,21 @@ function FindHistory() {
       </div>
 
       <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
+        {isLoading ? (
+          <div className="text-center py-10 text-gray-500">Loading history...</div>
+        ) : (
+          <>
         <table className="w-full min-w-lg md:min-w-full border-spacing-y-0">
           <tbody>
-            {paginatedPeople.map((item, index) => (
+            {histories.map((item, index) => (
               <tr
-                key={item.id}
+                key={item.id || index}
                 className={`${index % 2 === 0 ? "bg-white" : "bg-[#F9FAFB]"} transition-colors hover:bg-blue-50`}
               >
                 <td className="py-2 px-3 md:py-3 md:px-4 w-12 md:w-16">
                   <img
-                    src={item.image}
-                    alt={item.name}
+                    src={getImageUrl(item.picture)}
+                    alt={item.fullname}
                     className=" w-10 h-10 md:w-12 md:h-12 rounded-sm object-cover"
                   />
                 </td>
@@ -103,21 +136,22 @@ function FindHistory() {
                 
                     {/* className="py-3 px-4 text-center text-sm md:text-base font-medium text-black" */}
 
-                    {item.name}
+                    {item.fullname}
+                </td>
+
+                <td className={`py-3 px-4 text-xs md:text-sm font-bold ${item.type_transaction === 'expense' ? 'text-red-500' : 'text-green-500'}`}>
+                  {item.type_transaction === 'expense' || item.type === 'transfer out' ? '- ' : '+ '}
+                  {formatRupiah(item.amount)}
                 </td>
 
                 <td className="py-3 px-4 text-xs md:text-sm text-gray-500">
-                  Rp. 50.000
-                </td>
-
-                <td className="py-3 px-4 text-xs md:text-sm text-gray-500">
-                  {item.phone}
+                  {item.phone || "-"}
                 </td>
                 <td className="py-3 px-4 text-right">
                   <button className="p-2 hover:bg-gray-200 rounded-full transition-colors">
                     <img
                       src="/Trash.svg"
-                      alt="favorit"
+                      alt="hapus"
                       className="w-5 h-5 opacity-60"
                     />
                   </button>
@@ -126,8 +160,11 @@ function FindHistory() {
             ))}
           </tbody>
         </table>
+          </>
 
-        {totalItems.length === 0 && (
+        )}
+
+        {histories.length === 0 && !isLoading  &&(
           <div>
             Data tidak ditemukan
           </div>
@@ -135,16 +172,16 @@ function FindHistory() {
 
       </div>
 
-      {totalItems > 0 && (
+      {histories.length > 0 && (
         <div className="flex flex-col sm:flex-row justify-between items-center mt-8 w-full text-sm text-gray-500 pt-4 border-t border-gray-100 gap-4">
           <div className="font-medium">
-            Show {paginatedPeople.length} History of {totalItems} History
+            Show {histories.length} History
           </div>
 
           <div className="flex items-center space-x-1">
             <button
               onClick={handlePrev}
-              disabled={currentPage === 1}
+              disabled={currentPage === 1 || isLoading}
               className="px-2 py-1 font-medium hover:text-[#4A3AFF] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Prev
@@ -166,7 +203,7 @@ function FindHistory() {
 
             <button
               onClick={handleNext}
-              disabled={currentPage === totalPages}
+              disabled={!isHasMorePage || isLoading}
               className="px-2 py-1 font-medium text-black hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Next

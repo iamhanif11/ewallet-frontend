@@ -42,6 +42,30 @@ export const transferFunds = createAsyncThunk(
     }
 );
 
+export const fetchTransactionHistory = createAsyncThunk(
+    "transaction/fetchHistory",
+    async ({ search = "", page = 1, limit = 10 }, { rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem("token");
+            
+            const response = await api.get("/transaction/history", {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                },
+                params: {
+                    search: search, 
+                    page: page,
+                    limit: limit
+                }
+            });
+            
+            return response.data.data; 
+        } catch (error) {
+            return rejectWithValue(error.response?.data);
+        }
+    }
+);
+
 const transactionSlice = createSlice({
     name: "transaction",
     initialState:{
@@ -85,6 +109,19 @@ const transactionSlice = createSlice({
         })
         .addCase(transferFunds.rejected, (state, action) => {
             state.transferStatus = "failed"
+            state.error = action.payload
+        })
+
+        .addCase(fetchTransactionHistory.pending, (state) => {
+            state.historyStatus = "loading"
+            state.error = null
+        })
+        .addCase(fetchTransactionHistory.fulfilled, (state, action) => {
+            state.historyStatus = "completed"
+            state.histories = action.payload.items || action.payload || []
+        })
+        .addCase(fetchTransactionHistory.rejected, (state, action) =>{
+            state.historyStatus ="failed"
             state.error = action.payload
         })
     }
