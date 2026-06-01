@@ -38,6 +38,25 @@ export const updateUserProfile = createAsyncThunk(
     }
 );
 
+export const updateUserPassword = createAsyncThunk(
+    "users/updatePassword",
+    async(passwordPayload, {rejectWithValue}) => {
+        try{
+            const token = localStorage.getItem("token")
+
+            const response = await api.patch("/user/password", passwordPayload, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            return response.data
+        } catch (error) {
+            return rejectWithValue(error.response?.data)
+        }
+    }
+)
+
 const usersSlice = createSlice({
     name: 'users',
     initialState: {
@@ -79,7 +98,19 @@ const usersSlice = createSlice({
         .addCase(updateUserProfile.rejected, (state, action) => {
             state.updateStatus = "failed"
             state.error = action.payload
-        });
+        })
+
+        .addCase(updateUserPassword.pending, (state) => {
+            state.updateStatus = "loading";
+            state.error = null;
+        })
+        .addCase(updateUserPassword.fulfilled, (state) => {
+            state.updateStatus = "completed"
+        })
+        .addCase(updateUserPassword.rejected, (state, action) => {
+            state.updateStatus = "failed"
+            state.error = action.payload
+        })
     }
 });
 

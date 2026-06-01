@@ -5,7 +5,7 @@ import NewPassword from "../pages/NewPassword";
 export const useAuth = () => {
     const dispatch = useDispatch();
 
-    const { isLoggedIn, currentUser, status } = useSelector((state) => state.auth)
+    const { isLoggedIn, currentUser, status, hasPin } = useSelector((state) => state.auth)
     console.log("data:", currentUser)
     const isLoading = status === 'loading';
 
@@ -42,6 +42,7 @@ export const useAuth = () => {
         isLoggedIn,
         currentUser,
         isLoading,
+        hasPin,
         handleRegister,
         handleLogin,
         handleLogout,

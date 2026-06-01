@@ -3,11 +3,11 @@ import toast from "react-hot-toast";
 import InputPassword from "../components/atoms/InputPasswd";
 import DashboardHeader from "../components/DashboardPage/DashboardHeader";
 import Menu from "../components/DashboardPage/Menu";
-import { useAuth } from "../hooks/useAuth";
+import { useDispatch } from "react-redux";
+import { updateUserPassword } from "../redux/slices/usersSlice";
 
 function ChangePassword() {
-
-  const { currentUser, registeredUsers, handleNewPassword } = useAuth();
+  const dispatch = useDispatch();
 
   const [formData, setFormData] = useState({
     oldPassword: "",
@@ -15,30 +15,19 @@ function ChangePassword() {
     confirmPassword: "",
   });
 
+  const [isLoading, setIsLoading] = useState(false)
   const handleChange = (e) => {
-    
-    setFormData({ ...formData, [e.target.id]: e.target.value });
+    const inputName = e.target.name || e.target.id;
+    setFormData((prev) => ({ ...prev, [inputName]: e.target.value }));
   };
+  
 
-  const handleSubmit = (e) => {
+
+
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    
-    if (!currentUser) {
-      return toast.error("Sesi tidak ditemukan, silakan login ulang");
-    }
-
-    
-    const userData = registeredUsers.find((u) => u.email === currentUser.email);
-
-    if (!userData) {
-      return toast.error("Data user tidak sinkron. Coba register ulang.");
-    }
-
-  
-    if (formData.oldPassword !== userData.password) {
-      return toast.error("Password lama salah!");
-    }
     if (formData.newPassword.length < 6) {
       return toast.error("Password baru minimal 6 karakter!");
     }
@@ -46,14 +35,22 @@ function ChangePassword() {
       return toast.error("Konfirmasi password tidak cocok!");
     }
 
+    const payload = {
+      current_password: formData.oldPassword,
+      new_password: formData.newPassword
+    }
 
+    setIsLoading(true);
     try {
-      handleNewPassword(currentUser.email, formData.newPassword);
-      toast.success("Password berhasil diperbarui!");
+      await dispatch(updateUserPassword(payload)).unwrap();
+      toast.success("Password berhasil diperbarui")
       // Reset form
       setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });
-    } catch {
-      toast.error("Gagal memperbarui password");
+    } catch (error) {
+      const errorMassage = typeof error === 'string'? error : (error.message)
+      toast.error(errorMassage);
+    } finally {
+      setIsLoading(false)
     }
   };
 
@@ -85,6 +82,7 @@ function ChangePassword() {
               label="Existing Password" 
               placeholder="Enter Your Existing Password"
               id="oldPassword" 
+              name= "oldPassword"
               value={formData.oldPassword}
               onChange={handleChange}
             />
@@ -94,6 +92,7 @@ function ChangePassword() {
               label="New Password"
               placeholder="Enter Your New Password"
               id="newPassword"
+              name= "newPassword"
               value={formData.newPassword}
               onChange={handleChange}
             />
@@ -103,6 +102,7 @@ function ChangePassword() {
               label="Confirm New Password"
               placeholder="Re-Type Your New Password"
               id="confirmPassword"
+              name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
             />
@@ -110,9 +110,14 @@ function ChangePassword() {
             
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white  py-4 rounded-lg transition-colors duration-200 mt-6 shadow-md "
+              disabled={isLoading}
+              className={`w-full py-4 rounded-lg transition-colors duration-200 mt-6 shadow-md ${
+                isLoading 
+                ? "bg-blue-400 text-gray-100 cursor-not-allowed" 
+                : "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+              }`}
             >
-              Submit
+              {isLoading ? "Loading..." : "Submit"}
             </button>
           </form>
 

@@ -6,6 +6,8 @@ import Logo from "../components/atoms/Logo";
 import {useAuth} from "../hooks/useAuth"
 import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
+import { clearAuthError } from "../redux/slices/authSlice";
+import { useDispatch } from "react-redux";
 
 
 const loginSchema = Joi.object({
@@ -24,9 +26,14 @@ const loginSchema = Joi.object({
 
 function Login() {
   const navigate = useNavigate();
-  const { handleLogin, currentUser, isLoading} = useAuth();
+  const dispatch = useDispatch()
+  const { handleLogin, currentUser, isLoading, isLoggedIn, hasPin} = useAuth();
   const [showPassword, setShowPassword] = useState(false)
 
+  useEffect(() => {
+    dispatch(clearAuthError());
+  }, [dispatch]);
+  
   const {
     register,
     handleSubmit,
@@ -37,15 +44,14 @@ function Login() {
   });
 
   useEffect(() => {
-    console.log("?", currentUser)
-    if (currentUser) {
-      if(!currentUser.has_pin){
+    if (isLoggedIn && currentUser) {
+      if(!hasPin){
         navigate("/create-pin")
       } else {
         navigate("/dashboard")
       }
     }
-  }, [currentUser, navigate])
+  }, [isLoggedIn, currentUser, hasPin, navigate])
   const onSubmit = async (data) => {
     try{
      await handleLogin(data.email, data.password);
@@ -69,7 +75,7 @@ function Login() {
     // sessionStorage.setItem("currentUser", JSON.stringify
  
   };
-
+console.log("status:", isLoading)
   return (
     <main className=" w-full min-h-screen bg-blue-600 flex font-montserrat">
       <section

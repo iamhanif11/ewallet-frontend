@@ -108,6 +108,7 @@ const authSlice = createSlice({
     initialState: {
         isLoggedIn: false,
         currentUser: null,
+        hasPin: false,
         status: "none", 
         error: null
     },
@@ -135,9 +136,11 @@ const authSlice = createSlice({
             state.error = null;
         })
         .addCase(loginUser.fulfilled, (state, action) => {
-            state.status = "completed"
+            state.status = "none"
             state.isLoggedIn = true;
-            state.currentUser = action.payload.user || action.payload;
+            state.currentUser = action.payload?.user || action.payload;
+            state.hasPin = action.payload?.has_pin || false
+            state.error = null
         })
         .addCase(loginUser.rejected, (state, action) => {
             state.status = "failed";
@@ -158,7 +161,7 @@ const authSlice = createSlice({
         .addCase(createPin.fulfilled, (state, action) => {
             state.status = "completed";
             if (state.currentUser) {
-                state.currentUser.pin = action.meta.arg.pin
+                state.currentUser.pin = action.payload.pin
                 state.currentUser.has_pin = true
             }
         })

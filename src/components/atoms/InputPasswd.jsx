@@ -3,7 +3,10 @@ import { useState } from 'react';
 const InputPassword = ({ 
   label = "Password", 
   placeholder = "Enter Your Password", 
-  id = "password" 
+  id = "password" ,
+  name,
+  value,
+  onChange
 }) => {
   // State untuk mengontrol apakah password terlihat atau tidak
   const [isVisible, setIsVisible] = useState(false);
@@ -26,6 +29,9 @@ const InputPassword = ({
 
         <input
           id={id}
+          name={name || id}
+          value={value}
+          onChange={onChange}
           type={isVisible ? "text" : "password"}
           placeholder={placeholder}
           className="w-full pl-12 pr-12 py-3.5 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-300 text-gray-700"
