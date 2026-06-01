@@ -14,6 +14,16 @@ function DetailTransfer({recipient, onConfirm}) {
     }
     onConfirm(Number(amount), note)
   }
+
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return "/User edit.svg";
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
+    const BACKEND_URL = "http://localhost:8080"; 
+    const cleanPath = imagePath.startsWith("/") ? imagePath.slice(1) : imagePath;
+    return cleanPath.startsWith("img/profile") 
+      ? `${BACKEND_URL}/${cleanPath}` 
+      : `${BACKEND_URL}/img/profile/${cleanPath}`;
+  };
   return (
     <section className="bg-white rounded-xs p-6  border border-gray-100 ">
       
@@ -23,13 +33,13 @@ function DetailTransfer({recipient, onConfirm}) {
 
         <div className="flex items-center gap-4 bg-[#E8E8E84D] p-4  border border-gray-100">
           <img 
-            src={recipient?.img} 
+            src={getImageUrl(recipient.picture || recipient?.img)} 
             alt="photo-profile" 
             className="w-16 h-16 rounded-md object-cover" 
           />
           <div className="flex-1">
-            <p className="font-bold text-md">{recipient?.name}</p>
-            <p className="text-sm text-gray-500 mb-1">{recipient.phone}</p>
+            <p className="font-bold text-md">{recipient?.receiver||recipient?.name}</p>
+            <p className="text-sm text-gray-500 mb-1">{recipient?.phone}</p>
             <div className="flex items-center gap-2 bg-primary text-white text-xs px-3 py-1 rounded-lg w-fit">
               <img src="/badge.svg" alt="verified" className="w-3 h-3" />
               <span>Verified</span>
@@ -70,6 +80,7 @@ function DetailTransfer({recipient, onConfirm}) {
         <textarea 
           value={note}
           onChange={(e) => setNote(e.target.value)}
+          maxLength={255}
           placeholder="Enter Some Notes"
           className="w-full p-4 bg-white border border-gray-200 rounded-md text-sm focus:outline-none resize-none placeholder:text-gray-400"
         ></textarea>

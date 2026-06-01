@@ -1,32 +1,14 @@
-import { useAuth } from "../hooks/useAuth";
 import EnterPin from "../components/DashboardPage/EnterPin";
 import FailPopUp from "../components/DashboardPage/FailPopUp";
 import SuccessPopUp from "../components/DashboardPage/SuccessPopUp";
 
 
-function TransferSubmit({ type, onClose, setType, transferData }) {
-  const { currentUser, handleTransfer } = useAuth();
-
+function TransferSubmit({ type, onClose, setType, onPinSubmit}) {
   const handleConfirm = (enteredPin) => {
-    console.log(transferData)
-    if (enteredPin === currentUser?.pin) {
-      try{
-        handleTransfer({
-          amount: transferData.amount,
-          recipientName: transferData.name,
-          recipientImage: transferData.img
-        });
-
-        setType("success")
-      } catch(error) {
-        console.log(error.message)
-        setType("failed")
-      }
-    } else {
-      setType("failed")
-    }
+    if (onPinSubmit) {
+      onPinSubmit(enteredPin)
   };
-  
+}
   if (!type) return null;
   
   return (
@@ -58,9 +40,6 @@ function TransferSubmit({ type, onClose, setType, transferData }) {
         onClose={onClose}
         />
       )}
-
-
-
       </div>
     </div>
 

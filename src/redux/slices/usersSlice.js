@@ -75,6 +75,24 @@ export const updateUserPin = createAsyncThunk(
     }
 )
 
+export const checkPin = createAsyncThunk(
+    "users/checkPin",
+    async (pinPayload, {rejectWithValue}) => {
+        try {
+            const token = localStorage.getItem("token")
+
+            const response = await api.post("/user/profile/pin/check", pinPayload, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            return response.data
+        } catch (error){
+            return rejectWithValue(error.response?.data)
+        }
+    }
+);
+
 const usersSlice = createSlice({
     name: 'users',
     initialState: {

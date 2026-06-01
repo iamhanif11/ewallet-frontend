@@ -1,6 +1,12 @@
+import { useNavigate } from "react-router";
 
 
 function SuccessPopUp(onDone) {
+  const navigate = useNavigate()
+
+  const handleGoToDashboard = () => {
+    navigate("/dashboard")
+  }
   return (
     <section className="p-8">
       <p className="font-semibold">Transfer to </p>
@@ -13,7 +19,9 @@ function SuccessPopUp(onDone) {
         <p className="text-sm text-gray-400 text-center">Thank you for using this application for your financial</p>
       </div>
 
-      <button className="btn-submit w-full border border-blue-600 p-2 rounded-md bg-blue-600 hover:bg-blue-700 cursor-pointer text-white font-montserrat mt-4">
+      <button 
+        onClick={handleGoToDashboard}
+      className="btn-submit w-full border border-blue-600 p-2 rounded-md bg-blue-600 hover:bg-blue-700 cursor-pointer text-white font-montserrat mt-4">
         Done
       </button>
 

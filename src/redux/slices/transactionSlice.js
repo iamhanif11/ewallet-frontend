@@ -25,6 +25,23 @@ export const findReceivers = createAsyncThunk(
     }
 );
 
+export const transferFunds = createAsyncThunk(
+    "transaction/transferFunds",
+    async (transferData, { rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem("token");
+            const response = await api.post("/transaction/transfer", transferData, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            return response.data
+        } catch (error) {
+            return rejectWithValue(error.response?.data)
+        }
+    }
+);
+
 const transactionSlice = createSlice({
     name: "transaction",
     initialState:{
@@ -34,6 +51,7 @@ const transactionSlice = createSlice({
             limit: 10
         },
         status: "none",
+        transferStatus: "none",
         error: null
     }, 
     reducers: {
@@ -55,6 +73,18 @@ const transactionSlice = createSlice({
         })
         .addCase(findReceivers.rejected, (state,action) => {
             state.status = "failed"
+            state.error = action.payload
+        })
+
+        .addCase(transferFunds.pending, (state) => {
+            state.transferStatus = "loading"
+            state.error = null
+        })
+        .addCase(transferFunds.fulfilled, (state) => {
+            state.transferStatus = "completed"
+        })
+        .addCase(transferFunds.rejected, (state, action) => {
+            state.transferStatus = "failed"
             state.error = action.payload
         })
     }
