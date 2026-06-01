@@ -3,15 +3,18 @@ import toast from "react-hot-toast";
 import EnterPinAtom from "../components/atoms/EnterPinAtom";
 import DashboardHeader from "../components/DashboardPage/DashboardHeader";
 import Menu from "../components/DashboardPage/Menu";
-import { useAuth } from "../hooks/useAuth";
 import { Link } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
+import { updateUserPin } from "../redux/slices/usersSlice";
 
 function ChangePin() {
   
   const [pin, setPin] = useState(["", "", "", "", "", ""]);
-  const { currentUser, handleCreatePin } = useAuth();
+  // const { currentUser, handleCreatePin } = useAuth();
+  const dispatch = useDispatch()
+  const { updateStatus} = useSelector((state) => state.users)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     const fullPin = pin.join("");
@@ -21,14 +24,8 @@ function ChangePin() {
       return toast.error("PIN harus lengkap 6 angka!");
     }
 
-    
-    if (!currentUser) {
-      return toast.error("Sesi Anda berakhir, silakan login kembali.");
-    }
-
     try {
-      
-      handleCreatePin(fullPin);
+      await dispatch(updateUserPin({pin: fullPin})).unwrap()
       
       toast.success("PIN berhasil diperbarui!");
       setPin(["", "", "", "", "", ""]); 
@@ -56,7 +53,7 @@ function ChangePin() {
           <div className="bg-white border border-gray-100 rounded-xl p-12 shadow-sm flex flex-col items-center w-full max-w-3xl min-h-450px justify-center self-center md:self-start">
             
             <div className="text-center mb-10">
-              <h3 Na className="font-bold text-2xl mb-2">Change Pin 👋</h3>
+              <h3  className="font-bold text-2xl mb-2">Change Pin 👋</h3>
               <p className="text-gray-400 text-sm max-w-250 mx-auto">
                 Please save your pin because this is very important for your security.
               </p>
@@ -71,9 +68,15 @@ function ChangePin() {
         
             <button
               onClick={handleSubmit}
-              className="w-full max-w-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 rounded-xl transition-all duration-200 shadow-md shadow-blue-500/20 active:scale-[0.98] cursor-pointer"
+              disabled = {updateStatus === "loading" || pin.join("").length < 6} 
+              className={`w-full max-w-sm font-semibold py-4 rounded-xl transition-all duration-200 shadow-md active:scale-[0.98] cursor-pointer
+                ${
+                  updateStatus === "loading" || pin.join("").length < 6
+                    ? "bg-gray-400 cursor-not-allowed shadow-none"
+                    : "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20"
+                }`}
             >
-              Submit
+              {updateStatus === "loading" ? "loading..." : "Submit"}
             </button>
           </div>
         

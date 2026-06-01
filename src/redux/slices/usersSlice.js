@@ -57,6 +57,24 @@ export const updateUserPassword = createAsyncThunk(
     }
 )
 
+export const updateUserPin = createAsyncThunk(
+    "users/updatePin",
+    async (pinPayload, {rejectWithValue}) => {
+        try{
+            const token = localStorage.getItem("token");
+            const response = await api.patch("/user/pin", pinPayload, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            return response.data;
+        } catch(error) {
+        return rejectWithValue(error.response?.data)
+    }
+    }
+)
+
 const usersSlice = createSlice({
     name: 'users',
     initialState: {
@@ -110,6 +128,18 @@ const usersSlice = createSlice({
         .addCase(updateUserPassword.rejected, (state, action) => {
             state.updateStatus = "failed"
             state.error = action.payload
+        })
+        
+        .addCase(updateUserPin.pending, (state) => {
+            state.updateStatus = "loading"
+            state.error = null
+        })
+        .addCase(updateUserPin.fulfilled, (state) => {
+            state.updateStatus = "completed";
+        })
+        .addCase(updateUserPin.rejected, (state, action) => {
+            state.updateStatus ="failed"
+            state.error = action.payload;
         })
     }
 });
