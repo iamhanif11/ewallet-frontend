@@ -19,7 +19,7 @@ function DashboardHeader() {
     setIsDropdownOpen(!isDropdownOpen);
   };
   
-  const displayLabel = profileData?.fullname || currentUser?.fullname ||profileData.email || currentUser?.email|| "User"
+  const displayLabel = profileData?.fullname || currentUser?.fullname ||profileData?.email || currentUser?.email|| "User"
 
   const getImageURL = (imagePath) => {
     if (!imagePath) return "/User edit.svg"
