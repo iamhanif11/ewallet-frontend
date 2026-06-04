@@ -15,3 +15,6 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           image_name: ${{ github.repository }}
+          extra_args: |
+            --build-arg VITE_API_BASE_URL=/api
+            --build-arg VITE_ENVIRONMENT=development

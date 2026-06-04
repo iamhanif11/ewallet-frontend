@@ -4,6 +4,12 @@ WORKDIR /app
 
 COPY package.json package-lock.json ./
 
+# ARG VITE_ENV=production
+# ENV VITE_ENVIRONMENT=VITE_ENV
+
+# ARG BASE_URL=http://localhost:8080
+# ENV VITE_API_BASE_URL=${BASE_URL}
+
 RUN npm ci
 
 COPY . .
@@ -14,7 +20,7 @@ FROM nginx:stable
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-COPY --from=builder /app/nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
