@@ -4,6 +4,13 @@ import { useSearchParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTransactionHistory } from "../../redux/slices/transactionSlice";
 
+const paymentOptions = [
+  { id: 1, name: "Bank Rakyat Indonesia", logo: "/Bank BRI (Bank Rakyat Indonesia) Logo (SVG-240p) - FileVector69 1.svg" },
+  { id: 2, name: "Dana", logo: "/Logo DANA (PNG-240p) - FileVector69 1.svg" },
+  { id: 3, name: "Bank Central Asia", logo: "/Bank BCA Logo (SVG-240p) - FileVector69 1.svg" },
+  { id: 4, name: "Gopay", logo: "/Logo GoPay (SVG-240p) - FileVector69 1.svg" },
+  { id: 5, name: "Ovo", logo: "/ovo.svg" },
+];
 
 function FindHistory() {
   const dispatch = useDispatch();
@@ -120,44 +127,69 @@ function FindHistory() {
           <>
         <table className="w-full min-w-lg md:min-w-full border-spacing-y-0">
           <tbody>
-            {histories.map((item, index) => (
-              <tr
-                key={item.id || index}
-                className={`${index % 2 === 0 ? "bg-white" : "bg-[#F9FAFB]"} transition-colors hover:bg-blue-50`}
-              >
-                <td className="py-2 px-3 md:py-3 md:px-4 w-12 md:w-16">
-                  <img
-                    src={getImageUrl(item.picture)}
-                    alt={item.fullname}
-                    className=" w-10 h-10 md:w-12 md:h-12 rounded-sm object-cover"
-                  />
-                </td>
-                <td className="py-3 px-4 text-center text-sm md:text-base font-medium text-black">
+            {histories.map((item, index) =>{
+              const isExpense = item.type_transaction === 'expense'
+              const amountColor = isExpense ? 'text-red-500' : 'text-green-500'
+              const sign = isExpense ? '- ' : "+ "
+
+            const paymentData = paymentOptions.find(option => option.id === item.payment_method_id);
+
+              const displayName = item.fullname ? item.fullname : "Top Up Balance";
+
+              let displayPicture
+              if (isExpense){
+                displayPicture = item.picture ? getImageUrl(item.picture) : "/user edit.svg"
+
+              } else {
+                displayPicture = paymentData ? paymentData.logo : "/Upload-default.svg";
+              }
+              let displayPhone;
+              if (isExpense) {
+                displayPhone = item.phone ? item.phone : "-";
+              } else {
                 
-                    {/* className="py-3 px-4 text-center text-sm md:text-base font-medium text-black" */}
+                displayPhone = paymentData ? paymentData.name : "System Entry";
+              }
+              
 
-                    {item.fullname}
-                </td>
-
-                <td className={`py-3 px-4 text-xs md:text-sm font-bold ${item.type_transaction === 'expense' ? 'text-red-500' : 'text-green-500'}`}>
-                  {item.type_transaction === 'expense' || item.type === 'transfer out' ? '- ' : '+ '}
-                  {formatRupiah(item.amount)}
-                </td>
-
-                <td className="py-3 px-4 text-xs md:text-sm text-gray-500">
-                  {item.phone || "-"}
-                </td>
-                <td className="py-3 px-4 text-right">
-                  <button className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+              return (
+                <tr
+                  key={item.id || index}
+                  className={`${index % 2 === 0 ? "bg-white" : "bg-[#F9FAFB]"} transition-colors hover:bg-blue-50`}
+                >
+                  <td className="py-2 px-3 md:py-3 md:px-4 w-12 md:w-16">
                     <img
-                      src="/Trash.svg"
-                      alt="hapus"
-                      className="w-5 h-5 opacity-60"
+                      src={displayPicture}
+                      alt={displayName}
+                      className=" w-10 h-10 md:w-12 md:h-12 rounded-sm object-cover"
                     />
-                  </button>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="py-3 px-4 text-center text-sm md:text-base font-medium text-black">
+                  
+                      {/* className="py-3 px-4 text-center text-sm md:text-base font-medium text-black" */}
+  
+                      {displayName}
+                  </td>
+  
+                  <td className={`py-3 px-4 text-xs md:text-sm font-bold ${amountColor}`}>
+                    {sign}{formatRupiah(item.amount)}
+                  </td>
+  
+                  <td className="py-3 px-4 text-xs md:text-sm text-gray-500">
+                    {displayPhone}
+                  </td>
+                  <td className="py-3 px-4 text-right">
+                    <button className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+                      <img
+                        src="/Trash.svg"
+                        alt="hapus"
+                        className="w-5 h-5 opacity-60"
+                      />
+                    </button>
+                  </td>
+                </tr>
+              )
+})}
           </tbody>
         </table>
           </>

@@ -8,11 +8,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { topUpBalance } from "../redux/slices/transactionSlice";
 import { useNavigate } from "react-router";
 import { fetchUserProfile } from "../redux/slices/usersSlice";
+import { useAuth } from "../hooks/useAuth";
 
 
 function TopUp() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
+
+  const {currentUser} = useAuth
 
   const {topUpStatus} = useSelector((state) => state.transaction)
   const {profileData} = useSelector((state) => state.users)
@@ -79,6 +82,10 @@ function TopUp() {
     }
   };
 
+  const displayLabel = profileData?.fullname || currentUser?.fullname || profileData?.email || currentUser?.email || "User Account";
+  const rawPicture = profileData?.picture || currentUser?.picture;
+  const displayPhone = profileData?.phone || currentUser?.phone || "-";
+
   return (
     <>
       <div>
@@ -96,13 +103,13 @@ function TopUp() {
 
               <div className="flex items-center gap-4 bg-[#E8E8E84D] p-4  border border-gray-100">
                 <img
-                  src={getDisplayImage(profileData?.picture)}
+                  src={getDisplayImage(rawPicture)}
                   alt="photo-profile"
                   className="w-16 h-16 rounded-md object-cover"
                 />
                 <div className="flex-1">
-                  <p className="font-bold text-md">{profileData?.email || "User Account"}</p>
-                  <p className="text-sm text-gray-500 mb-1">{profileData?.phone}</p>
+                  <p className="font-bold text-md">{displayLabel}</p>
+                  <p className="text-sm text-gray-500 mb-1">{displayPhone}</p>
                   <div className="flex items-center gap-2 bg-primary text-white text-xs px-3 py-1 rounded-lg w-fit">
                     <img src="/badge.svg" alt="verified" className="w-3 h-3" />
                     <span>Verified</span>
