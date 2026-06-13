@@ -2,13 +2,22 @@ import { useState } from "react";
 import PaymentMethod from "../components/atoms/PaymentOption";
 import DashboardHeader from "../components/DashboardPage/DashboardHeader";
 import Menu from "../components/DashboardPage/Menu";
-import { useAuth } from "../hooks/useAuth";
+// import { useAuth } from "../hooks/useAuth";
 import toast from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { topUpBalance } from "../redux/slices/transactionSlice";
 
 
 function TopUp() {
-  const { handleTopUp, currentUser} = useAuth()
+  const dispatch = useDispatch()
+
+  const {topUpStatus} = useSelector((state) => state.transaction)
+  const {profileData} = useSelector((state) => state.users)
+  // const [previewImage, setPreviewImage] = useState(null)
+
   const [amount, setAmount] = useState("")
+
+  const [paymentMethodId, setPaymentMethodId] = useState(1)
 
   const serviceFee = 2500
   const taxRate = 0.11
@@ -17,18 +26,22 @@ function TopUp() {
   const tax = nominalTopUp > 0 ? serviceFee * taxRate : 0;
   const totalCharge = nominalTopUp > 0 ? nominalTopUp + serviceFee + tax : 0
 
- const handleSubmit = () => {
+ const handleSubmit = async () => {
     if (nominalTopUp <= 0) {
       toast.error("Masukkan nominal yang valid!")
       return;
     }
 
     try{
-      handleTopUp(nominalTopUp)
+     await dispatch(topUpBalance({
+      amount: nominalTopUp, 
+      payment_method_id: paymentMethodId
+     })).unwrap()
+
       toast.success(
         <div>
           <p className="font-bold">Top Up Berhasil</p>
-          <p>Rp. {nominalTopUp.toLocaleString()}</p>
+          <p>Rp. {nominalTopUp.toLocaleString("id-ID")}</p>
         </div>
       )
       setAmount("")
@@ -36,6 +49,23 @@ function TopUp() {
       toast.error(error.message || "Terjadi Kesalahan")
     }
   }
+
+   const getDisplayImage = (imagePath) => {
+    if (!imagePath) return "/User edit.svg";
+
+    if(imagePath.startsWith("blob")) return imagePath
+
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
+
+    const BACKEND_URL = "http://localhost:8080";
+    const cleanPath = imagePath.startsWith("/") ? imagePath.slice(1) : imagePath
+
+    if (cleanPath.startsWith("img/profile")){
+      return `${BACKEND_URL}/${cleanPath}`
+    } else {
+      return `${BACKEND_URL}/img/profile/${cleanPath}`
+    }
+  };
 
   return (
     <>
@@ -54,13 +84,13 @@ function TopUp() {
 
               <div className="flex items-center gap-4 bg-[#E8E8E84D] p-4  border border-gray-100">
                 <img
-                  src="/ghaluh.svg"
+                  src={getDisplayImage(profileData?.picture)}
                   alt="photo-profile"
                   className="w-16 h-16 rounded-md object-cover"
                 />
                 <div className="flex-1">
-                  <p className="font-bold text-md">{currentUser?.email || "User Account"}</p>
-                  <p className="text-sm text-gray-500 mb-1">(239) 555-0108</p>
+                  <p className="font-bold text-md">{profileData?.email || "User Account"}</p>
+                  <p className="text-sm text-gray-500 mb-1">{profileData?.phone}</p>
                   <div className="flex items-center gap-2 bg-primary text-white text-xs px-3 py-1 rounded-lg w-fit">
                     <img src="/badge.svg" alt="verified" className="w-3 h-3" />
                     <span>Verified</span>
@@ -100,7 +130,7 @@ function TopUp() {
               </div>
             </div>
             <div className="border border-gray-200 rounded-xs p-4" >
-              <PaymentMethod />
+              <PaymentMethod selectedMethod={paymentMethodId} onChange={setPaymentMethodId}/>
             </div>
           </div>
           <div>
@@ -134,14 +164,14 @@ function TopUp() {
 
              <button
                 onClick={handleSubmit}
-                disabled={nominalTopUp <= 0}
+                disabled={nominalTopUp <= 0 || topUpStatus==="loading"}
                 className={`w-full p-3 rounded-md text-sm font-bold transition-all shadow-md 
-                  ${nominalTopUp > 0 
+                  ${nominalTopUp > 0 && topUpStatus !=="loading"
                     ? "bg-blue-600 hover:bg-blue-700 text-white" 
                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
                   }`}
               >
-                Submit Payment
+                {topUpStatus === "loading" ? "loading..." : "Submit Payment"}
               </button>
             </section>
           </div>

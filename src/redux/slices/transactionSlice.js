@@ -66,6 +66,24 @@ export const fetchTransactionHistory = createAsyncThunk(
     }
 );
 
+export const topUpBalance = createAsyncThunk(
+    "transaction/topUp",
+    async (topUpData, {rejectWithValue}) => {
+        try{
+            const token = localStorage.getItem("token")
+
+            const response = await api.post("/transaction/topup", topUpData, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data)
+        }
+    }
+)
+
 const transactionSlice = createSlice({
     name: "transaction",
     initialState:{
@@ -76,6 +94,7 @@ const transactionSlice = createSlice({
         },
         status: "none",
         transferStatus: "none",
+        topUpStatus: "none",
         error: null
     }, 
     reducers: {
@@ -122,6 +141,18 @@ const transactionSlice = createSlice({
         })
         .addCase(fetchTransactionHistory.rejected, (state, action) =>{
             state.historyStatus ="failed"
+            state.error = action.payload
+        })
+
+        .addCase(topUpBalance.pending, (state) => {
+            state.topUpStatus = "loading"
+            state.error = null
+        })
+        .addCase(topUpBalance.fulfilled, (state) => {
+            state.topUpStatus = "completed"
+        })
+        .addCase(topUpBalance.rejected, (state, action) => {
+            state.topUpStatus = "failed"
             state.error = action.payload
         })
     }
