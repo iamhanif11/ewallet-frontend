@@ -59,7 +59,7 @@ function TransferDetail() {
   const getImageUrl = (imagePath) => {
     if (!imagePath) return "/User edit.svg";
     if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
-    const BACKEND_URL = "http://localhost:8080"; 
+    const BACKEND_URL = "/api"; 
     const cleanPath = imagePath.startsWith("/") ? imagePath.slice(1) : imagePath;
     return cleanPath.startsWith("img/profile") 
       ? `${BACKEND_URL}/${cleanPath}` 
