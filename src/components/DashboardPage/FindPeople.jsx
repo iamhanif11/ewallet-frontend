@@ -48,14 +48,17 @@ function FindPeople() {
     );
   }, [dispatch, queryFromUrl,currentPage, itemsPerPage])
 
-  const getImageUrl = (imagePath) => {
+ const getImageURL = (imagePath) => {
     if (!imagePath) return "/User edit.svg";
-    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
-    const BACKEND_URL = "/api"; 
-    const cleanPath = imagePath.startsWith("/") ? imagePath.slice(1) : imagePath;
-    return cleanPath.startsWith("img/profile") 
-      ? `${BACKEND_URL}/${cleanPath}` 
-      : `${BACKEND_URL}/img/profile/${cleanPath}`;
+
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://"))
+      return imagePath;
+
+    const BACKEND_URL = "/api";
+
+    const fileName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
+
+    return `${BACKEND_URL}/img/profile/${fileName}`;
   };
 
   const isHasMorePage = receivers.length === itemsPerPage;
@@ -119,7 +122,7 @@ function FindPeople() {
                   >
                     <td className="py-2 px-3 md:py-3 md:px-4 w-12 md:w-16">
                       <img
-                        src={getImageUrl(person.picture)}
+                        src={getImageURL(person.picture)}
                         alt={person.receiver}
                         className=" w-10 h-10 md:w-12 md:h-12 rounded-sm object-cover"
                       />

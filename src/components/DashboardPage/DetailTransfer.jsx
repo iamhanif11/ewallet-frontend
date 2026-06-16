@@ -14,17 +14,17 @@ function DetailTransfer({ recipient, onConfirm }) {
     onConfirm(Number(amount), note);
   };
 
-  const getImageUrl = (imagePath) => {
+  const getImageURL = (imagePath) => {
     if (!imagePath) return "/User edit.svg";
+
     if (imagePath.startsWith("http://") || imagePath.startsWith("https://"))
       return imagePath;
+
     const BACKEND_URL = "/api";
-    const cleanPath = imagePath.startsWith("/")
-      ? imagePath.slice(1)
-      : imagePath;
-    return cleanPath.startsWith("img/profile")
-      ? `${BACKEND_URL}/${cleanPath}`
-      : `${BACKEND_URL}/img/profile/${cleanPath}`;
+
+    const fileName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
+
+    return `${BACKEND_URL}/img/profile/${fileName}`;
   };
   return (
     <section className="rounded-xs border border-gray-100 bg-white p-6">
@@ -33,7 +33,7 @@ function DetailTransfer({ recipient, onConfirm }) {
 
         <div className="flex items-center gap-4 border border-gray-100 bg-[#E8E8E84D] p-4">
           <img
-            src={getImageUrl(recipient.picture || recipient?.img)}
+            src={getImageURL (recipient.picture || recipient?.img)}
             alt="photo-profile"
             className="h-16 w-16 rounded-md object-cover"
           />

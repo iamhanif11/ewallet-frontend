@@ -56,14 +56,17 @@ function TransferDetail() {
     }
   };
 
-  const getImageUrl = (imagePath) => {
+   const getImageURL = (imagePath) => {
     if (!imagePath) return "/User edit.svg";
-    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
-    const BACKEND_URL = "/api"; 
-    const cleanPath = imagePath.startsWith("/") ? imagePath.slice(1) : imagePath;
-    return cleanPath.startsWith("img/profile") 
-      ? `${BACKEND_URL}/${cleanPath}` 
-      : `${BACKEND_URL}/img/profile/${cleanPath}`;
+
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://"))
+      return imagePath;
+
+    const BACKEND_URL = "/api";
+
+    const fileName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
+
+    return `${BACKEND_URL}/img/profile/${fileName}`;
   };
   
   return (
@@ -94,7 +97,7 @@ function TransferDetail() {
               transferData={{
                 amount: transferData.amount,
                 name: recipient?.receiver || recipient?.name, 
-                img: getImageUrl(recipient?.picture || recipient?.img || "/User edit.svg") 
+                img: getImageURL(recipient?.picture || recipient?.img || "/User edit.svg") 
               }}
             />
           </div>

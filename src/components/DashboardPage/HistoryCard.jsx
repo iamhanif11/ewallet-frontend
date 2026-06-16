@@ -32,14 +32,17 @@ function HistoryCard() {
     }).format(angka);
   };
 
-  const getImageUrl = (imagePath) => {
+ const getImageURL = (imagePath) => {
     if (!imagePath) return "/User edit.svg";
-    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
+
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://"))
+      return imagePath;
+
     const BACKEND_URL = "/api";
-    const cleanPath = imagePath.startsWith("/") ? imagePath.slice(1) : imagePath;
-    return cleanPath.startsWith("img/profile")
-      ? `${BACKEND_URL}/${cleanPath}`
-      : `${BACKEND_URL}/img/profile/${cleanPath}`;
+
+    const fileName = imagePath.substring(imagePath.lastIndexOf("/") + 1);
+
+    return `${BACKEND_URL}/img/profile/${fileName}`;
   };
 
   return (
@@ -71,7 +74,7 @@ function HistoryCard() {
 
             let displayPicture;
             if (isExpense) {
-              displayPicture = item.picture ? getImageUrl(item.picture) : "/User edit.svg";
+              displayPicture = item.picture ? getImageURL(item.picture) : "/User edit.svg";
             } else {
               displayPicture = paymentData ? paymentData.logo : "/Upload-default.svg";
             }
