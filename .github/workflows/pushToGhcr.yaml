@@ -1,4 +1,4 @@
-name: Build And Publish to GHCR
+name: Build And Publish E-Wallet Frontend
 on:
   push:
     branches: main
