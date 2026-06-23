@@ -14,29 +14,32 @@ import EditProfile from "./pages/EditProfile";
 import ChangePin from "./pages/ChangePin";
 import ChangePassword from "./pages/ChangePassword";
 import NewPassword from "./pages/NewPassword";
+import ProtectedRoute from "./utils/ProtectedRoute";
 
 
 
 function AppRouter() {
   return (
-    <Routes>
+  <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/create-pin" element={<CreatePin />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/new-password" element={<NewPassword/>} />
 
+    <Route element={<ProtectedRoute/>}>
+      <Route path="/create-pin" element={<CreatePin />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/transfer" element={<TransferPage />} />
       <Route path="/detail" element={<TransferDetail />} />
       <Route path="/top-up" element={<TopUp />} />
       <Route path="/history" element={<History />} />
-      <Route path="/transfer-sde" element={<TransferSubmit />} />
+      <Route path="/transfer-send" element={<TransferSubmit />} />
       <Route path="/edit-profile" element={<EditProfile />} />
       <Route path="/change-pin" element={<ChangePin />} />
       <Route path="/change-password" element={<ChangePassword />} />
-    </Routes>
+    </Route>
+  </Routes>
   );
 }
 
