@@ -15,7 +15,7 @@ function TopUp() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
-  const {currentUser} = useAuth
+  const {currentUser} = useAuth()
 
   const {topUpStatus} = useSelector((state) => state.transaction)
   const {profileData} = useSelector((state) => state.users)
